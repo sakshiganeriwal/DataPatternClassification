@@ -1,93 +1,27 @@
 <html>
 <head>
 <title>Data Visualization</title>
-
-       <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
-    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/cubism.css')}}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
-    <script>
-        jQuery.noConflict();
-    </script>
- <script type="text/javascript">
-        $(document).ready(function(){
-            namespace = '';
-            var socket = io.connect('http://' + document.domain + ':' + location.port + namespace);
-            socket.on('conn', function(json){  
-                var attributes=JSON.parse(json);
-                // console.log(attributes);
-                selectEl = document.getElementById('attrSel');
-                for(var i = 0; i < attributes.length; i++){
-                selectEl.options.add(new Option(attributes[i], attributes[i]));
-                }     
-            });
-            socket.on('my response', function(json) {
-                var j = JSON.parse(json);
-                //$('#log').append('<br>' + $('<div/>').text('Received #' + json.m + ': ' + json.group+json.name).html());
-                var t=j.t;
-                var t1=j.t1;
-                console.log("t");
-                console.log("t1");
-                console.log(t);
-                console.log(t1);
-                plot(t,t1);
-                
-            });
-        
-                $('form#attrSelect').submit(function(event) {
-            var opts = getSelectedOptions( this.elements['attrSel[]'] );
-            socket.emit('generate',JSON.stringify(opts));
-            return false;
-            });
-            
-    });
-</script>
-
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}" media="screen">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/custom.min.css')}}">
 </head>
 <body>
-
-<nav class="navbar navbar-default">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="#">Outliers</a>
+ <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand">Outliers</a>
+          <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-main">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        </div>
+        <div class="navbar-collapse collapse" id="navbar-main">
+        </div>
     </div>
-    </div>
-</nav>
-<div id="example1"></div>
-<form action="#" method="POST" id="attrSelect" class="form-horizontal">
-    <fieldset>
-        <legend>Select Options</legend>
-         <div class="form-group">
-        <div class="col-lg-10 col-lg-offset-2">
-        <p>
-            <select name="attrSel[]" id="attrSel" multiple>
-            </select>
-             <input type="submit" class="btn btn-primary"/>
-      </div>
-    </div>
-    </fieldset>
-</form>
-   
-
-    <section><div id="legend"></div></section>
-    <h2>Receive:</h2>
-    
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="http://square.github.io/cubism/d3.v2.js"></script>
-<script src="http://square.github.io/cubism/cubism.v1.js"></script>
-<script src="http://square.github.io/cubism/highlight.min.js"></script>
-<script src="{{ url_for('static', filename='js/d3.v3.js')}}"></script>
-<script src="{{ url_for('static', filename='js/try.js')}}"></script>
-
+</div>
+<div class="well">
+    <a href="Scatter.html" class="btn btn-default btn-lg btn-block">Scatter Plot</a>
+    <a href="Block.html" class="btn btn-default btn-lg btn-block">Block level Plot</a>
+</div>
 </body>
 </html>
