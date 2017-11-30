@@ -13,9 +13,8 @@
         name: "No Events",
         value: "0.0"
     });
-var legendRectSize = 18;                                  // NEW
-        var legendSpacing = 4;                                    // NEW
 
+var colors = ["#ffffff", "#00BBBB", "#00CCCC", "#00DDDD", "#00EEEE", "#00FFFF", "#00BB5E", "#00CC66", "#00DD6F", "#00EE77", "#00FF84", "#BBBB00", "#CCCC00", "#DDDD00", "#EEEE00", "#FFFF00J", "#BB5E00", "#CC6600m", "#DD6F00", "#EE7700", "#FF8000", "#BB0000", "#CC0000", "#DD0000", "#EE0000", "#FF0000"];
 var context = cubism.context() // set the cubism context
                     .serverDelay(0) // No server delay
                     .clientDelay(0) // No client delay
@@ -43,23 +42,23 @@ d3.select("#example1").call(function (div) {
 
         
         
-        function intToRGB(i){
-            // var i1= 
-            // for(i = 0; i < 360; i += 360 / i1) {
-            //     HSLColor c;
-            //     c.hue = i;
-            //     c.saturation = 90 + randf() * 10;
-            //     c.lightness = 50 + randf() * 10;
+        // function intToRGB(i){
+        //     var i1= 
+        //     // for(i = 0; i < 360; i += 360 / i1) {
+        //     //     HSLColor c;
+        //     //     c.hue = i;
+        //     //     c.saturation = 90 + randf() * 10;
+        //     //     c.lightness = 50 + randf() * 10;
 
-            //     colors.push(c);
-            // }
-            i=Math.round(Math.random()* 127) + 127;
-            var c = (i & 0x00FFFFFF)
-                .toString(16)
-                .toUpperCase();
+        //     //     colors.push(c);
+        //     // }
+        //     i=Math.round(Math.random()* 127) + 127;
+        //     var c = (i & 0x00FFFFFF)
+        //         .toString(16)
+        //         .toUpperCase();
 
-            return "00000".substring(0, 6 - c.length) + c;
-        }
+        //     return "00000".substring(0, 6 - c.length) + c;
+        // }
         function AddAllClusters() {
             for (var i = 0; i < Clusters.length; i++) {
                 var mycluster = random(Clusters[i].name);
@@ -74,26 +73,6 @@ d3.select("#example1").call(function (div) {
             .enter().append("div")
                 .attr("class", "horizon")
                 .call(context.horizon().colors(colors));
-        var legend = d3.select("#example1").selectAll(".horizon")
-                .data(AllClusters)  
-            .enter().append("div")
-      .attr('class', 'legend')
-      .attr('transform', function(d, i) {
-        var height = legendRectSize;
-        var x = 0;
-        var y = i * height;
-        return 'translate(' + x + ',' + y + ')';
-        legend.append('rect')
-    .attr('width', legendRectSize)
-    .attr('height', legendRectSize)
-    .style('fill', colors)
-    .style('stroke', colors);
-});
- 
-legend.append('text')
-    .attr('x', legendRectSize + legendSpacing)
-    .attr('y', legendRectSize - legendSpacing)
-    .text(function(d) { return d; });
         }
 
         function random(name) {
@@ -182,8 +161,7 @@ legend.append('text')
 
 
         function plot(t,t1)
-        {   console.log(t);
-            console.log(t1);
+        {
             // console.log("events");
             // console.log(events);
             // console.log("Clusters");
