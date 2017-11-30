@@ -1,11 +1,11 @@
 import numpy as np
 import scipy.cluster.hierarchy
-from scipy.spatial import distance
 import matplotlib.pyplot as plt
 import collections
 from jellyfish import jaro_distance
 import json
 import time
+import math
 import random
 from threading import Thread
 from flask import Flask, render_template, session, request, json
@@ -42,22 +42,26 @@ elif async_mode == 'gevent':
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode=async_mode)
-#thread = None
+
 colors=[]
 DicFin=[]
 Dic=[]
 value=[]
 t=["india","canada","pakistan","nigeria","hong kong","china","japan","australia"]
-#inp=input("Enter Cluster category:1.country 2.balance 3.gender")
+trans_type=["withdraw","deposit","enquire"]
 inp=0
+
 def gennerate_obj():
     d={'country':random.choice(t),
         'age':random.randrange(20,80),
-        'balance':random.uniform(1,100000)
+        'balance':random.uniform(1,100000),
+        'type':random.choice(trans_type),
+        'duration':random.uniform(1,30)
         }
     # print "object generated"
     # print d
     return d    
+
 def lookup(dic, key):
     keys=dic.keys()
     if key in keys:
@@ -68,6 +72,7 @@ def lookup(dic, key):
             if flag>=0:
                 value.append(dic.get(each))
     return
+
 def parse_dict(init, lkey=''):
     ret = {}
     if isinstance(init,basestring):
@@ -83,6 +88,7 @@ def parse_dict(init, lkey=''):
             else:
                 ret[str(key)] = str(val)
     return dict(ret)
+
 def fancy_dendrogram(*args, **kwargs):
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:
@@ -112,6 +118,7 @@ def java_string_hashcode(s):
     for c in s:
         h = (31 * h + ord(c)) & 0xFFFFFFFF
     return ((h + 0x80000000) & 0xFFFFFFFF) - 0x80000000
+
 def levenshtein(s1, s2):
     if len(s1) < len(s2):
         return levenshtein(s2, s1)
@@ -144,152 +151,144 @@ class MyEncoder(json.JSONEncoder):
             return super(MyEncoder, self).default(obj)
 
 def dist(x,y):
-    # print "in dist"   
     return np.sqrt(np.sum((x-y)**2))
 
-def ClusterMethod(inp,value):
-    # print "in ClusterMethod"
-    # with open("largetest.json") as json_file:
-    #     Dic = json.load(json_file)
-    # for each in Dic:
-    #     Dic1= parse_dict(each,'')
-    #     DicFin.append(Dic1)
-    if inp == 3:
+def Select(inp):
+    global colors
+    global DicFin
+    global value
+    global X
+    global clusterlist
+    if inp==1:
+        for each in Dic:
+            lookup(each,'age')
+        for each in value:
+            if each not in DicFin:
+                DicFin.append(each)
+            num =java_string_hashcode(each)
+            colors.append(num)
+        X=findDistance()
+    elif inp==2:
+        for each in Dic:
+            lookup(each,'balance')
+        for each in value:
+            if each not in DicFin:
+                DicFin.append(each)
+            num =java_string_hashcode(each)
+            colors.append(num)
+        X=findDistance()
+    elif inp==3:
         for each in Dic:
             lookup(each,'country')
         for each in value:
+            if each not in DicFin:
+                DicFin.append(each)
             num =java_string_hashcode(each)
             colors.append(num)
-        n=len(value)
-        X = []
-        for i in range(n):
-            for j in range(n):
-                if j>i:
-                    X.append(levenshtein(value[i],value[j]))
-
-    elif inp == 1:
-        # print "in age"
-        for each in Dic:
-            lookup(each,'age')
-        n = len(value)
-        value=np.array(value)
-        # print "value"
-        # print value
-        X = []
-        for i in range(n):
-            for j in range(n):
-                if j>i:
-                    X.append(dist(value[i],value[j]))
-        # print "X"
-        # print X
-        # print len(X)
-
-    elif inp == 2:
-        for each in Dic:
-            lookup(each,'balance')
-        n = len(value)
-        value=np.array(value)
-        # print "value"
-        # print value
-        X = []
-        for i in range(n):
-            for j in range(n):
-                if j>i:
-                    X.append(dist(value[i],value[j]))
-        # print "X"
-        # print X
-        # print len(X)
-    
+        X=findDistance()
+    elif inp==4:
+        all_keys = set().union(*(d.keys() for d in Dic))
+        all_keys=list(all_keys)
+        for i in all_keys:
+            Y=[]
+            for each in Dic:
+                lookup(each,i)
+            for each in value:
+                num =java_string_hashcode(each)
+                colors.append(num)
+            Y=findDistance()
+            if not len(X):
+                X=np.zeros(len(Y))
+            X = X + Y
+        X = X/len(all_keys)
+        colors=X
     else:
         print "choose correct option"
-  
-    # print "value"
-    # print value
-    # print "X"
-    # print X
     linkage_matrix = scipy.cluster.hierarchy.linkage(X, "single")
     fancy_dendrogram(linkage_matrix,p=12,leaf_rotation=90.,leaf_font_size=12.,annotate_above=10)
     t=scipy.cluster.hierarchy.fcluster(linkage_matrix,1)
-    # print t
-    m = len(set(t))
-    d={'m':m,'name':[],'group':[]}
-    d['name'].extend(value)
-    d['group'].extend(t)
-    # print "json to send"
-    # print d
-    #json_data=json.dumps(d,cls=MyEncoder)
+    d=[];
+    counter=collections.Counter(t)
+    d={'numele':len(t),'countcluster':[],'uniquecluster':[],'name':[],'colors':[]}
+    d['countcluster'].extend(counter.values())
+    d['uniquecluster'].extend(counter.keys())
+    d['name'].extend(DicFin)
+    d['colors'].extend(colors)
     return d
 
-
+def findDistance():
+    global value
+    global X    
+    n=len(value)
+    X = []
+    for i in range(n):
+        for j in range(n):
+            if j>i:
+                X.append(dist(colors[i],colors[j]))
+    return X
 
 @app.route('/')
 def index():
-    #global thread
-    #if thread is None:
-    #    thread = Thread(target=background_thread, args=(json,))
-     #   thread.daemon = True
-      #  thread.start()
     return render_template('index.html')
-def ack():
-    print 'message was received!'
+
+@socketio.on('connect')
+def test_connect():
+    emit('conn', )
 
 @socketio.on('clusterAge')
 def test1():
     inp=1
-    # print "clusterAll"
     while True:
         time.sleep(2.5)
         for i in range(1,random.randint(2,10)):
             Dic.append(gennerate_obj())
-        # print "Dic"
-        # print Dic
-        f=ClusterMethod(inp,value)
-        # print "f"
-        # print f
+        print "Dic"
+        print Dic
+        f=Select(inp)
+        print "f"
+        print f
         fsend=json.dumps(f,cls=MyEncoder)
-        #send(json,json=True)
+        del Dic[:]
         emit('my response', fsend)
-        # print "Emit sucess"
-        #send('my response',
-         #    "json send")
 
+        print "Emit sucess"
+        
 @socketio.on('clusterBalance')
 def test2():
     inp = 2
-    # print "clusterAll"
     while True:
         time.sleep(2.5)
-        for i in range(1,random.randint(2,10)):
+        for i in range(1,random.randint(20,30)):
             Dic.append(gennerate_obj())
-        # print Dic
-        f=ClusterMethod(inp,value)
-        # print "f"
-        # print f
+        f=Select(inp)
         fsend=json.dumps(f,cls=MyEncoder)
-        #send(json,json=True)
+        del Dic[:]
         emit('my response', fsend)
-        # print "Emit sucess"
-        #send('my response',
-         #    "json send")
-
+        
 @socketio.on('clusterCountry')
 def test3():
     inp=3
-    # print "clusterAll"
     while True:
         time.sleep(2.5)
         for i in range(1,random.randint(2,10)):
             Dic.append(gennerate_obj())
-        # print Dic
-        f=ClusterMethod(inp,value)
-        # print "f"
-        # print f
+        f = Select(inp)
         fsend=json.dumps(f,cls=MyEncoder)
-        #send(json,json=True)
+        del Dic[:]
         emit('my response', fsend)
-        # print "Emit sucess"
-        #send('my response',
-         #    "json send")
+
+@socketio.on('clusterAll')
+def test3():
+    inp=4
+    while True:
+        time.sleep(2.5)
+        for i in range(1,random.randint(2,10)):
+            Dic.append(gennerate_obj())
+        f=Select(inp)
+        fsend=json.dumps(f,cls=MyEncoder)
+        del Dic[:]
+        emit('my response', fsend)
+        print "Emit sucess"
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True,port=6080, host='0.0.0.0')
+    socketio.run(app, debug=True,port=7080, host='0.0.0.0')

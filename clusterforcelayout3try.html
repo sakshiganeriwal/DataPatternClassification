@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body>
+<button type="button" value="Add node">Add node</button>
+<script src="d3.v3.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+<script>
+
+var width = 1024,
+    height = 764,
+    padding = 1.5, 
+    clusterPadding = 6, 
+    maxRadius = 12;
+
+var color = d3.scale.category10()
+    .domain(d3.range(m));
+//var t=[2, 3, 1, 2, 1];
+var t=[2, 5, 2, 2, 1, 3, 2, 4, 1, 3, 4, 1, 2, 4, 2, 4, 3, 4, 2, 2, 1, 5, 4,
+       5, 2, 1, 4, 3, 5, 5, 4, 3, 5, 5, 3, 1, 3, 3, 5, 1, 4, 1, 1, 2, 2, 1,
+       4, 5, 4, 1, 1, 4, 2, 5, 4, 5, 4, 5, 1, 3, 4, 3, 3, 4, 5, 4, 3, 3, 4,
+       1, 1, 3, 2, 1, 2, 3, 5, 3, 4, 3, 4, 5, 4, 1, 5, 1, 5, 5, 3, 4, 2, 3,
+       1, 4, 4, 2, 5, 1, 5, 1, 4, 5, 2, 2, 3, 4, 4, 3, 5, 4, 1, 1, 2, 5, 3,
+       5, 4, 3, 2, 4, 3, 3, 3, 1, 4, 1, 1, 3, 1, 5, 4, 2, 3, 3, 5, 2, 5, 3,
+       4, 3, 1, 2, 4, 2, 1, 4, 1, 5, 3, 2, 1, 3, 5, 3, 4, 5, 1, 4, 1, 3, 5,
+       4, 4, 1, 4, 1, 2, 4, 5, 2, 3, 3, 5, 5, 2, 4, 3, 1, 2, 5, 1, 5, 2, 4,
+       5, 1, 4, 2, 1, 4, 4, 4, 1, 3, 5, 5, 4, 2, 5, 5, 5, 1, 1, 5, 2, 5, 1,
+       4, 5, 4, 1, 4, 4, 5, 2, 1, 4, 1, 3, 3, 1, 4, 5, 1, 3, 3, 4, 5, 2, 3,
+       5, 3, 3, 3, 3, 5, 1, 1, 4, 1, 3, 2, 5, 1, 1, 3, 5, 5, 5, 2, 3, 2, 2,
+       2, 3, 1, 1, 3, 4, 3, 3, 1, 1, 5, 2, 3, 4, 5, 1, 3, 5, 2, 5, 4, 5, 3,
+       2, 5, 1, 1, 1, 1, 5, 2, 1, 5, 1, 3, 5, 3, 1, 3, 2, 1, 1, 2, 3, 1, 2,
+       4, 3, 5, 1, 1, 5, 3, 5, 3, 4, 4, 2, 2, 3, 1, 3, 3, 2, 2, 5, 3, 4, 1,
+       3, 5, 1, 3, 1, 4, 5, 3, 2, 4, 1, 4, 5, 5, 4, 1, 4, 1, 4, 1, 2, 5, 4,
+       2, 1, 3, 1, 1, 1, 5, 4, 1, 4, 1, 4, 3, 4, 5, 2, 2, 2, 5, 3, 1, 2, 1,
+       4, 3, 3, 4, 1, 3, 3, 4, 2, 3, 2, 5, 2, 4, 4, 4, 4, 5, 5, 3, 1, 4, 1,
+       4, 5, 4, 5, 3, 2, 1, 4, 1, 3, 3, 5, 4, 2, 1, 4, 5, 1, 1, 1, 5, 4, 5,
+       3, 1, 2, 3, 3, 5, 1, 1, 3, 4, 2, 5, 2, 2, 5, 5, 3, 1, 2, 4, 5, 2, 2,
+       5, 3, 3, 2, 2, 4, 3, 2, 1, 2, 2, 3, 5, 5, 1, 2, 5, 4, 4, 3, 3, 2, 4,
+       4, 2, 1, 4, 5, 4, 4, 4, 1, 5, 5, 3, 2, 2, 5, 5, 3, 5, 3, 4, 5, 5, 1,
+       1, 1, 4, 3, 3, 5, 4, 5, 2, 1, 3, 5, 3, 4, 4, 1, 1, 5, 5, 2, 4, 3, 2,
+       4, 5, 4, 3, 1, 1, 3, 2, 4, 1, 2, 1, 1, 5, 1, 2, 4, 2, 3, 4, 3, 1, 1,
+       4, 4, 1, 1, 1, 1, 5, 5, 1, 4, 2, 3, 5, 5, 4, 4, 5, 2, 5, 2, 3, 4, 1,
+       4, 1, 4, 3, 2, 4, 2, 5, 1, 1, 1, 5, 4, 2, 2, 3, 1, 3, 4, 4, 4, 5, 4,
+       4, 5, 1, 2, 4, 2, 4, 3, 3, 1, 3, 4, 3, 1, 5, 1, 3, 4, 1, 2, 1];
+
+var value = ["blue", "brown", "blue", "blue", "yellow", "red", "blue", "green", "yellow", "red", "green", "yellow", "blue", "green", "blue", "green", "red", "green", "blue", "blue", "yellow", "brown", "green", "brown", "blue", "yellow", "green", "red", "brown", "brown", "green", "red", "brown", "brown", "red", "yellow", "red", "red", "brown", "yellow", "green", "yellow", "yellow", "blue", "blue", "yellow", "green", "brown", "green", "yellow", "yellow", "green", "blue", "brown", "green", "brown", "green", "brown", "yellow", "red", "green", "red", "red", "green", "brown", "green", "red", "red", "green", "yellow", "yellow", "red", "blue", "yellow", "blue", "red", "brown", "red", "green", "red", "green", "brown", "green", "yellow", "brown", "yellow", "brown", "brown", "red", "green", "blue", "red", "yellow", "green", "green", "blue", "brown", "yellow", "brown", "yellow", "green", "brown", "blue", "blue", "red", "green", "green", "red", "brown", "green", "yellow", "yellow", "blue", "brown", "red", "brown", "green", "red", "blue", "green", "red", "red", "red", "yellow", "green", "yellow", "yellow", "red", "yellow", "brown", "green", "blue", "red", "red", "brown", "blue", "brown", "red", "green", "red", "yellow", "blue", "green", "blue", "yellow", "green", "yellow", "brown", "red", "blue", "yellow", "red", "brown", "red", "green", "brown", "yellow", "green", "yellow", "red", "brown", "green", "green", "yellow", "green", "yellow", "blue", "green", "brown", "blue", "red", "red", "brown", "brown", "blue", "green", "red", "yellow", "blue", "brown", "yellow", "brown", "blue", "green", "brown", "yellow", "green", "blue", "yellow", "green", "green", "green", "yellow", "red", "brown", "brown", "green", "blue", "brown", "brown", "brown", "yellow", "yellow", "brown", "blue", "brown", "yellow", "green", "brown", "green", "yellow", "green", "green", "brown", "blue", "yellow", "green", "yellow", "red", "red", "yellow", "green", "brown", "yellow", "red", "red", "green", "brown", "blue", "red", "brown", "red", "red", "red", "red", "brown", "yellow", "yellow", "green", "yellow", "red", "blue", "brown", "yellow", "yellow", "red", "brown", "brown", "brown", "blue", "red", "blue", "blue", "blue", "red", "yellow", "yellow", "red", "green", "red", "red", "yellow", "yellow", "brown", "blue", "red", "green", "brown", "yellow", "red", "brown", "blue", "brown", "green", "brown", "red", "blue", "brown", "yellow", "yellow", "yellow", "yellow", "brown", "blue", "yellow", "brown", "yellow", "red", "brown", "red", "yellow", "red", "blue", "yellow", "yellow", "blue", "red", "yellow", "blue", "green", "red", "brown", "yellow", "yellow", "brown", "red", "brown", "red", "green", "green", "blue", "blue", "red", "yellow", "red", "red", "blue", "blue", "brown", "red", "green", "yellow", "red", "brown", "yellow", "red", "yellow", "green", "brown", "red", "blue", "green", "yellow", "green", "brown", "brown", "green", "yellow", "green", "yellow", "green", "yellow", "blue", "brown", "green", "blue", "yellow", "red", "yellow", "yellow", "yellow", "brown", "green", "yellow", "green", "yellow", "green", "red", "green", "brown", "blue", "blue", "blue", "brown", "red", "yellow", "blue", "yellow", "green", "red", "red", "green", "yellow", "red", "red", "green", "blue", "red", "blue", "brown", "blue", "green", "green", "green", "green", "brown", "brown", "red", "yellow", "green", "yellow", "green", "brown", "green", "brown", "red", "blue", "yellow", "green", "yellow", "red", "red", "brown", "green", "blue", "yellow", "green", "brown", "yellow", "yellow", "yellow", "brown", "green", "brown", "red", "yellow", "blue", "red", "red", "brown", "yellow", "yellow", "red", "green", "blue", "brown", "blue", "blue", "brown", "brown", "red", "yellow", "blue", "green", "brown", "blue", "blue", "brown", "red", "red", "blue", "blue", "green", "red", "blue", "yellow", "blue", "blue", "red", "brown", "brown", "yellow", "blue", "brown", "green", "green", "red", "red", "blue", "green", "green", "blue", "yellow", "green", "brown", "green", "green", "green", "yellow", "brown", "brown", "red", "blue", "blue", "brown", "brown", "red", "brown", "red", "green", "brown", "brown", "yellow", "yellow", "yellow", "green", "red", "red", "brown", "green", "brown", "blue", "yellow", "red", "brown", "red", "green", "green", "yellow", "yellow", "brown", "brown", "blue", "green", "red", "blue", "green", "brown", "green", "red", "yellow", "yellow", "red", "blue", "green", "yellow", "blue", "yellow", "yellow", "brown", "yellow", "blue", "green", "blue", "red", "green", "red", "yellow", "yellow", "green", "green", "yellow", "yellow", "yellow", "yellow", "brown", "brown", "yellow", "green", "blue", "red", "brown", "brown", "green", "green", "brown", "blue", "brown", "blue", "red", "green", "yellow", "green", "yellow", "green", "red", "blue", "green", "blue", "brown", "yellow", "yellow", "yellow", "brown", "green", "blue", "blue", "red", "yellow", "red", "green", "green", "green", "brown", "green", "green", "brown", "yellow", "blue", "green", "blue", "green", "red", "red", "yellow", "red", "green", "red", "yellow", "brown", "yellow", "red", "green", "yellow", "blue", "yellow"];
+var n = t.length; // total number of circles
+var m = 5; // number of distinct clusters
+// The largest node for each cluster.
+var clusters = new Array(m);
+var zoom = d3.behavior.zoom()
+    .scaleExtent([1, 10])
+    .on("zoom", zoomed);
+
+var nodes = d3.range(n).map(function(j) {
+  var i = t[j],
+      r = Math.sqrt((i + 1) / m * -Math.log(Math.random())) * maxRadius,
+      d = {
+        name: value[j],
+        cluster: i,
+        radius: r,
+        x: Math.cos(i / m * 2 * Math.PI) * 200 + width / 2 + Math.random(),
+        y: Math.sin(i / m * 2 * Math.PI) * 200 + height / 2 + Math.random()
+      };
+  if (!clusters[i] || (r > clusters[i].radius)) clusters[i] = d;
+  return d;
+});
+
+
+
+var force = d3.layout.force()
+    .nodes(nodes)
+    .size([width, height])
+    .gravity(.02)
+    .charge(0)
+    .on("tick", tick)
+    .start();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var node = svg.selectAll("circle")
+    .data(nodes)
+  .enter().append("circle")
+    .style("fill", function(d) { return color(d.cluster); })
+    .call(force.drag);
+   // .call(zoom);
+node.append("title")
+      .text(function(d) { return d.name; });
+
+node.transition()
+    .duration(750)
+    .delay(function(d, i) { return i * 5; })
+    .attrTween("r", function(d) {
+      var i = d3.interpolate(0, d.radius);
+      return function(t) { return d.radius = i(t); };
+    });
+
+function zoomed() {
+  container.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+function tick(e) {
+  node
+      .each(cluster(10 * e.alpha * e.alpha))
+      .each(collide(.5))
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; });
+}
+
+// Move d to be adjacent to the cluster node.
+function cluster(alpha) {
+  return function(d) {
+    var cluster = clusters[d.cluster];
+    if (cluster === d) return;
+    var x = d.x - cluster.x,
+        y = d.y - cluster.y,
+        l = Math.sqrt(x * x + y * y),
+        r = d.radius + cluster.radius;
+    if (l != r) {
+      l = (l - r) / l * alpha;
+      d.x -= x *= l;
+      d.y -= y *= l;
+      cluster.x += x;
+      cluster.y += y;
+    }
+  };
+}
+
+// Resolves collisions between d and all other circles.
+function collide(alpha) {
+    var quadtree = d3.geom.quadtree(nodes);
+    return function (d) {
+        var r = d.radius + maxRadius + Math.max(padding, clusterPadding),
+            nx1 = d.x - r,
+            nx2 = d.x + r,
+            ny1 = d.y - r,
+            ny2 = d.y + r;
+        quadtree.visit(function (quad, x1, y1, x2, y2) {
+            if (quad.point && (quad.point !== d)) {
+                var x = d.x - quad.point.x,
+                    y = d.y - quad.point.y,
+                    l = Math.sqrt(x * x + y * y),
+                    r = d.radius + quad.point.radius + (d.cluster === quad.point.cluster ? padding : clusterPadding);
+                if (l < r) {
+                    l = (l - r) / l * alpha;
+                    d.x -= x *= l;
+                    d.y -= y *= l;
+                    quad.point.x += x;
+                    quad.point.y += y;
+                }
+            }
+            return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        });
+    };
+}
+function update() {
+
+    // Update the nodes…
+    node = svg.selectAll("circle.node")
+        .data(nodes);
+
+    // Enter any new nodes.
+    node.enter().append("circle")
+        .attr("class", "node")
+        .attr("cx", function (d) {
+        return d.x;
+    })
+        .attr("cy", function (d) {
+        return d.y;
+    })
+        .attr("r", function (d) {
+        return d.radius;
+    })
+        .style("fill", "steelblue")
+        .call(force.drag);
+
+    // Exit any old nodes.
+    node.exit().remove();
+
+    // Restart the force layout.
+    force.start();
+}
+
+
+function addNode() {
+    nodes.push({
+        cluster: 2,
+        radius: 5,
+        x: Math.cos(3 / 4 * 2 * Math.PI) * 200 + width / 2 + Math.random(),
+        y: Math.sin(5 / 4 * 2 * Math.PI) * 200 + height / 2 + Math.random()
+    });
+    //console.log(nodes);
+    update();
+}
+
+d3.select('button').on("click", addNode);
+</script>
+
