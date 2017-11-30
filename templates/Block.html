@@ -1,0 +1,169 @@
+<html>
+<head>
+<title>Data Visualization</title>
+
+       <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}" media="screen">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/cubism.css')}}">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/custom.min.css')}}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jscolor.js') }}"></script>
+    <script>
+        jQuery.noConflict();
+    </script>
+ <script type="text/javascript">
+ var opts=[];
+ var text=[];
+ var colors = ["#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff","#ffffff",, "#00BBBB", "#00CCCC", "#00DDDD", "#00EEEE", "#00FFFF", "#00BB5E", "#00CC66", "#00DD6F", "#00EE77", "#00FF84", "#BBBB00", "#CCCC00", "#DDDD00", "#EEEE00", "#FFFF00J", "#BB5E00", "#CC6600m", "#DD6F00", "#EE7700", "#FF8000", "#BB0000", "#CC0000", "#DD0000", "#EE0000", "#FF0000"];
+
+$(document).ready(function(){
+    namespace = '';
+    var host = 'http://' + document.domain + ':' + location.port + namespace;
+    var socket = io.connect(host);
+
+   socket.on('conn', function(json){  
+        var attributes=JSON.parse(json);
+        // console.log(attributes);
+        selectEl = document.getElementById('attrSel');
+        for(var i = 0; i < attributes.length; i++){
+            var container = $('#cblist');
+            var inputs = container.find('input');
+            var id = inputs.length/3;
+            console.log(id);
+            console.log(attributes[i]);
+            console.log(i);
+            $('<input />', { type: 'checkbox', class: 'enablecb', id: 'cb'+id, value: attributes[i] }).appendTo(container);
+            $('<label />', { 'for': 'cb'+id, text: attributes[i] }).appendTo(container);
+            $('<div class="col-lg-10">').appendTo(container);
+            $('<input />', { type: 'text', id: attributes[i] , name: attributes[i] }).appendTo(container);
+            $('</div>').appendTo(container);
+            $('<div>').appendTo(container);
+            $('<input />', { name: 'color'+id, class: 'jscolor', value: '99cc00'}).appendTo(container);
+            $('</div>').appendTo(container);
+            $('<br/><br/>').appendTo(container);
+        }  
+        $('input.enablecb').change(function(){
+            $(this).next().next().next()[ this.checked ? 'show' : 'hide']();   
+            $(this).next().next().next().next().next()[ this.checked ? 'show' : 'hide']();  
+        }).change();
+        
+        });
+    socket.on('my response', function(json) {
+        var j = JSON.parse(json);
+        var t = j.t;
+        var t1 = j.t1;
+        plot(t,t1);  
+    });
+    socket.on('disconnect', function(json){
+        console.log("disconnected");
+        // var socket = io.connect(host);
+        // socket.socket.reconnect();
+        // socket.io.reconnect(host);
+        dict = "reconn";
+        socket.emit('generate',JSON.stringify(dict));
+        console.log("reconnected");
+    });
+    socket.on('error', function (err) {
+        if (err.description) throw err.description;
+        else throw err;
+        socket.io.reconnect(); // Or whatever you want to do
+    });
+    function checkAll() {
+        var checkboxes = document.getElementsByClassName('enablecb');
+        var checkboxesChecked = [];
+        for (var i = 0; i < checkboxes.length; i++)
+        {
+        if (checkboxes[i].checked) {
+        checkboxesChecked.push(checkboxes[i].value);
+        }
+        }
+        return checkboxesChecked.length > 0 ? checkboxesChecked : null;
+        }
+    function addColor(){
+       var params = location.search.replace(/^\?/,'').split('&');
+       var str1='#';
+        for (var i = 0; i < params.length; i += 1) {
+        var key_val = params[i].split('=');
+        if (key_val.length >= 2) {
+        var key = key_val[0];
+        var val = str1.concat(key_val[1]);
+        console.log("val");
+        console.log(val);
+        var j = colors.length/2
+        colors[j-i] = val;
+        console.log("colors");
+        console.log(colors);
+        // document.write('<p>GET[' + key + '] = <strong>' + val + '</strong></p>');
+        }
+        } 
+        }
+        
+    $('form#attrSelect').submit(function(event) {
+        console.log('check for checkbox');
+        opts = checkAll();
+        for(var i = 0; i < opts.length; i++){
+            text.push(document.getElementById(opts[i]).value);  
+        }
+        addColor();
+        var dict={};
+        for(var i = 0; i < opts.length; i++){
+            dict[opts[i]] = text[i];
+        }
+        console.log("opts");
+        console.log(opts);
+        console.log("text");
+        console.log(text);
+        console.log("dict");
+        console.log(dict);
+       socket.emit('Blockgenerate',JSON.stringify(dict));
+        return false; 
+        });
+    });
+</script>
+
+</head>
+<body>
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Outliers</a>
+    </div>
+    </div>
+</nav>
+<div id="example1"></div>
+<form action="#" method="POST" id="attrSelect" class="form-horizontal">
+    <fieldset>
+        <legend>Select Options</legend>
+         <div class="form-group">
+        <div class="col-lg-10 col-lg-offset-2">
+        <div class="checkbox" id="cblist"></div>
+             <input type="submit" class="btn btn-primary"/>
+      </div>
+    </div>
+    </fieldset>
+</form>
+   
+
+    <section><div id="legend"></div></section>
+    <h2>Receive:</h2>
+    
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="http://square.github.io/cubism/d3.v2.js"></script>
+<script src="http://square.github.io/cubism/cubism.v1.js"></script>
+<script src="http://square.github.io/cubism/highlight.min.js"></script>
+<script src="{{ url_for('static', filename='js/d3.v3.js')}}"></script>
+<script src="{{ url_for('static', filename='js/try.js')}}"></script>
+
+</body>
+</html>
